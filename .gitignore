@@ -1,0 +1,24 @@
+# .NET build outputs
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Playwright browsers
+**/.playwright/
+**/playwright-browsers/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Rider / VS
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
