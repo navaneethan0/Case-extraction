@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ECourtScraperApi.Services;
 using ECourtScraperApi.Models;
+using ECourtScraperApi.Data;
 
 namespace ECourtScraperApi.Controllers;
 
@@ -13,6 +14,7 @@ public class ECourtController : ControllerBase
     private readonly ICaseCacheService _cacheService;
     private readonly ICasePdfService _pdfService;
     private readonly ICaptchaOcrService _ocrService;
+    private readonly CaseDbContext _dbContext;
     private readonly ILogger<ECourtController> _logger;
 
     public ECourtController(
@@ -21,6 +23,7 @@ public class ECourtController : ControllerBase
         ICaseCacheService cacheService,
         ICasePdfService pdfService,
         ICaptchaOcrService ocrService,
+        CaseDbContext dbContext,
         ILogger<ECourtController> logger)
     {
         _sessionManager = sessionManager;
@@ -28,6 +31,7 @@ public class ECourtController : ControllerBase
         _cacheService = cacheService;
         _pdfService = pdfService;
         _ocrService = ocrService;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -73,6 +77,43 @@ public class ECourtController : ControllerBase
             if (response.Success && response.CaseDetails != null)
             {
                 _cacheService.Set(request.CnrNumber, response.CaseDetails);
+
+                try
+                {
+                    _logger.LogInformation("Saving scraped case details for CNR: {Cnr} to PostgreSQL database...", request.CnrNumber);
+                    
+                    var existingCase = await _dbContext.Cases.FindAsync(request.CnrNumber);
+                    if (existingCase != null)
+                    {
+                        // Update basic case values
+                        _dbContext.Entry(existingCase).CurrentValues.SetValues(response.CaseDetails);
+                        
+                        // EF Core JSONB columns must be explicitly updated
+                        existingCase.Petitioners = response.CaseDetails.Petitioners;
+                        existingCase.Respondents = response.CaseDetails.Respondents;
+                        existingCase.Acts = response.CaseDetails.Acts;
+                        existingCase.Hearings = response.CaseDetails.Hearings;
+                        existingCase.Orders = response.CaseDetails.Orders;
+                        existingCase.Processes = response.CaseDetails.Processes;
+                        existingCase.TransferDetails = response.CaseDetails.TransferDetails;
+                        existingCase.IAStatuses = response.CaseDetails.IAStatuses;
+                        
+                        _dbContext.Cases.Update(existingCase);
+                        _logger.LogInformation("Case {Cnr} already exists. Details updated successfully.", request.CnrNumber);
+                    }
+                    else
+                    {
+                        await _dbContext.Cases.AddAsync(response.CaseDetails);
+                        _logger.LogInformation("New Case {Cnr} saved to PostgreSQL database successfully.", request.CnrNumber);
+                    }
+
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception dbEx)
+                {
+                    _logger.LogError(dbEx, "Failed to persist case details to PostgreSQL database.");
+                    // Fallback: We don't throw or fail the request if database write fails, ensuring the scraper details are still returned to the client
+                }
             }
             return Ok(response);
         }

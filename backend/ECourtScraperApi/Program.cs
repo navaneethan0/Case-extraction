@@ -1,4 +1,6 @@
 using ECourtScraperApi.Services;
+using ECourtScraperApi.Data;
+using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
 
 // Set QuestPDF Community license
@@ -27,12 +29,31 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<PlaywrightSessionManager>();
 builder.Services.AddScoped<CaseScraper>();
 
+// Register DbContext for PostgreSQL
+builder.Services.AddDbContext<CaseDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 // Register Cache, PDF and OCR services
 builder.Services.AddSingleton<ICaseCacheService, CaseCacheService>();
 builder.Services.AddScoped<ICasePdfService, CasePdfService>();
 builder.Services.AddScoped<ICaptchaOcrService, CaptchaOcrService>();
 
 var app = builder.Build();
+
+// Auto-migrate or create database on startup
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<CaseDbContext>();
+        dbContext.Database.EnsureCreated();
+        app.Logger.LogInformation("PostgreSQL database initialization succeeded.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "An error occurred while initializing the PostgreSQL database.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
