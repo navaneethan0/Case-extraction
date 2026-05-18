@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ECourtScraperApi.Services;
 using ECourtScraperApi.Models;
 using ECourtScraperApi.Data;
@@ -125,6 +126,24 @@ public class ECourtController : ControllerBase
         finally
         {
             await _sessionManager.CloseSessionAsync(request.SessionId);
+        }
+    }
+
+    [HttpGet("cases")]
+    public async Task<IActionResult> GetAllCases()
+    {
+        try
+        {
+            _logger.LogInformation("Retrieving all stored case records from PostgreSQL database...");
+            var cases = await _dbContext.Cases
+                .OrderByDescending(c => c.RegistrationDate)
+                .ToListAsync();
+            return Ok(cases);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve case records from PostgreSQL database.");
+            return StatusCode(500, new { error = "Failed to load database records. Ensure PostgreSQL is active." });
         }
     }
 
