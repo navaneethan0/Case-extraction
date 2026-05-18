@@ -12,6 +12,7 @@ public class ECourtController : ControllerBase
     private readonly CaseScraper _scraper;
     private readonly ICaseCacheService _cacheService;
     private readonly ICasePdfService _pdfService;
+    private readonly ICaptchaOcrService _ocrService;
     private readonly ILogger<ECourtController> _logger;
 
     public ECourtController(
@@ -19,12 +20,14 @@ public class ECourtController : ControllerBase
         CaseScraper scraper,
         ICaseCacheService cacheService,
         ICasePdfService pdfService,
+        ICaptchaOcrService ocrService,
         ILogger<ECourtController> logger)
     {
         _sessionManager = sessionManager;
         _scraper = scraper;
         _cacheService = cacheService;
         _pdfService = pdfService;
+        _ocrService = ocrService;
         _logger = logger;
     }
 
@@ -34,7 +37,19 @@ public class ECourtController : ControllerBase
         try
         {
             var result = await _sessionManager.GetCaptchaAsync();
-            return Ok(new { sessionId = result.SessionId, captchaBase64 = result.CaptchaBase64 });
+            
+            // Perform OCR on the CAPTCHA image bytes
+            var captchaBytes = Convert.FromBase64String(result.CaptchaBase64);
+            var ocrText = await _ocrService.PerformOcrAsync(captchaBytes);
+
+            var response = new CaptchaResponseDto
+            {
+                SessionId = result.SessionId,
+                CaptchaBase64 = result.CaptchaBase64,
+                OcrText = ocrText
+            };
+
+            return Ok(response);
         }
         catch (Exception ex)
         {

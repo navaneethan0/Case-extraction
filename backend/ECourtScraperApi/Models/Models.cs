@@ -82,3 +82,10 @@ public class IAStatus
     public string NextDate { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
 }
+
+public class CaptchaResponseDto
+{
+    public string SessionId { get; set; } = string.Empty;
+    public string CaptchaBase64 { get; set; } = string.Empty;
+    public string OcrText { get; set; } = string.Empty;
+}

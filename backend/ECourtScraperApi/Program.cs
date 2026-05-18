@@ -27,9 +27,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<PlaywrightSessionManager>();
 builder.Services.AddScoped<CaseScraper>();
 
-// Register Cache and PDF services
+// Register Cache, PDF and OCR services
 builder.Services.AddSingleton<ICaseCacheService, CaseCacheService>();
 builder.Services.AddScoped<ICasePdfService, CasePdfService>();
+builder.Services.AddScoped<ICaptchaOcrService, CaptchaOcrService>();
 
 var app = builder.Build();
 

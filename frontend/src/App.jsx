@@ -51,7 +51,7 @@ function App() {
       const response = await axios.get(`${API_BASE_URL}/captcha`);
       setCaptchaBase64(response.data.captchaBase64);
       setSessionId(response.data.sessionId);
-      setCaptchaText(''); // clear previous input
+      setCaptchaText(response.data.ocrText || ''); // auto-fill with OCR result
     } catch (err) {
       console.error(err);
       setError('Failed to load CAPTCHA. The eCourts website might be down.');
