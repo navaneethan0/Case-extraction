@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using ECourtScraperApi.Services;
 using ECourtScraperApi.Models;
 using ECourtScraperApi.Data;
@@ -153,6 +154,12 @@ public class ECourtController : ControllerBase
         try
         {
             var caseData = _cacheService.Get(cnr);
+            if (caseData == null)
+            {
+                _logger.LogInformation("Cache miss for PDF export of CNR: {Cnr}. Querying PostgreSQL database...", cnr);
+                caseData = _dbContext.Cases.FirstOrDefault(c => c.CnrNumber == cnr);
+            }
+
             if (caseData == null)
             {
                 return NotFound(new { error = $"Case data not found or session expired for CNR: {cnr}. Please search the case first before downloading the PDF." });

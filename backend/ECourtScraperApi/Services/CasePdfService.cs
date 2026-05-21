@@ -23,7 +23,7 @@ internal class CaseReportDocument : IDocument
 {
     private readonly CaseData _model;
     
-    // Theme Colors (Deep Navy and Steel Grey/Slate as static Color objects)
+    // Theme Colors (Deep Navy and Slate Grey as static Color objects)
     private static readonly Color PrimaryColor = Color.FromHex("#1A365D"); // Deep Navy
     private static readonly Color SecondaryColor = Color.FromHex("#4A5568"); // Slate Grey
     private static readonly Color LightBackground = Color.FromHex("#F7FAFC"); // Soft White/Gray
@@ -56,27 +56,26 @@ internal class CaseReportDocument : IDocument
     {
         container.Row(row =>
         {
-            row.RelativeItem().Column(column =>
+            row.RelativeItem().AlignMiddle().Column(column =>
             {
-                column.Item().Text("eCourts Case Report").FontSize(20).Bold().FontColor(PrimaryColor);
-                column.Item().Text($"Generated on: {DateTime.Now:dd MMM yyyy, hh:mm tt}").FontSize(8).FontColor(SecondaryColor);
+                column.Item().Text("eCourts Case Report").FontSize(22).Bold().FontColor(PrimaryColor);
+                column.Item().PaddingTop(2).Text($"Generated on: {DateTime.Now:dd MMM yyyy, hh:mm tt}").FontSize(8.5f).FontColor(SecondaryColor);
             });
 
             // Modern typographic badge logo on right
-            row.ConstantItem(100).AlignRight().AlignMiddle().Column(col => 
-            {
-                col.Item()
-                   .Border(1.5f)
-                   .BorderColor(PrimaryColor)
-                   .Background(LightBackground)
-                   .PaddingHorizontal(8)
-                   .PaddingVertical(4)
-                   .AlignCenter()
-                   .Text("eCOURTS SYSTEM")
-                   .FontSize(8)
-                   .Bold()
-                   .FontColor(PrimaryColor);
-            });
+            row.ConstantItem(115)
+               .AlignRight()
+               .AlignMiddle()
+               .Border(1.5f)
+               .BorderColor(PrimaryColor)
+               .Background(LightBackground)
+               .PaddingHorizontal(8)
+               .PaddingVertical(4)
+               .AlignCenter()
+               .Text("eCOURTS SYSTEM")
+               .FontSize(8.5f)
+               .Bold()
+               .FontColor(PrimaryColor);
         });
     }
 
@@ -84,7 +83,7 @@ internal class CaseReportDocument : IDocument
     {
         container.PaddingTop(15).Column(column =>
         {
-            column.Spacing(15);
+            column.Spacing(18);
 
             // 1. Basic Information Section
             column.Item().Element(ComposeBasicInfo);
@@ -115,10 +114,20 @@ internal class CaseReportDocument : IDocument
         });
     }
 
+    private void ComposeLabelValue(ColumnDescriptor col, string label, string value)
+    {
+        col.Item().Row(row =>
+        {
+            row.ConstantItem(110).Text(label).Bold().FontSize(8.5f).FontColor(SecondaryColor);
+            row.RelativeItem().Text(string.IsNullOrWhiteSpace(value) ? "N/A" : value).FontSize(8.5f).FontColor(Colors.Black).LineHeight(1.2f);
+        });
+    }
+
     private void ComposeBasicInfo(IContainer container)
     {
         container.Column(column =>
         {
+            column.Spacing(6);
             column.Item().Element(title => SectionTitle(title, "1. CASE BASIC INFORMATION"));
             
             column.Item().Border(1).BorderColor(BorderColor).Background(LightBackground).Padding(10).Column(col =>
@@ -127,16 +136,21 @@ internal class CaseReportDocument : IDocument
                 {
                     row.RelativeItem().Column(c =>
                     {
-                        c.Item().Text(t => { t.Span("CNR Number: ").Bold(); t.Span(_model.CnrNumber); });
-                        c.Item().Text(t => { t.Span("Case Title: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.CaseTitle) ? "N/A" : _model.CaseTitle); });
-                        c.Item().Text(t => { t.Span("Case Type: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.CaseType) ? "N/A" : _model.CaseType); });
+                        c.Spacing(4);
+                        ComposeLabelValue(c, "CNR Number:", _model.CnrNumber);
+                        ComposeLabelValue(c, "Case Title:", _model.CaseTitle);
+                        ComposeLabelValue(c, "Case Type:", _model.CaseType);
                     });
+                    
+                    row.ConstantItem(15); // Spacer
+                    
                     row.RelativeItem().Column(c =>
                     {
-                        c.Item().Text(t => { t.Span("Filing Number: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.FilingNumber) ? "N/A" : _model.FilingNumber); });
-                        c.Item().Text(t => { t.Span("Filing Date: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.FilingDate) ? "N/A" : _model.FilingDate); });
-                        c.Item().Text(t => { t.Span("Registration Number: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.RegistrationNumber) ? "N/A" : _model.RegistrationNumber); });
-                        c.Item().Text(t => { t.Span("Registration Date: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.RegistrationDate) ? "N/A" : _model.RegistrationDate); });
+                        c.Spacing(4);
+                        ComposeLabelValue(c, "Filing Number:", _model.FilingNumber);
+                        ComposeLabelValue(c, "Filing Date:", _model.FilingDate);
+                        ComposeLabelValue(c, "Registration Number:", _model.RegistrationNumber);
+                        ComposeLabelValue(c, "Registration Date:", _model.RegistrationDate);
                     });
                 });
             });
@@ -147,6 +161,7 @@ internal class CaseReportDocument : IDocument
     {
         container.Column(column =>
         {
+            column.Spacing(6);
             column.Item().Element(title => SectionTitle(title, "2. CASE STATUS & COURT DETAILS"));
             
             column.Item().Border(1).BorderColor(BorderColor).Background(Colors.White).Padding(10).Column(col =>
@@ -155,14 +170,19 @@ internal class CaseReportDocument : IDocument
                 {
                     row.RelativeItem().Column(c =>
                     {
-                        c.Item().Text(t => { t.Span("First Hearing Date: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.FirstHearingDate) ? "N/A" : _model.FirstHearingDate); });
-                        c.Item().Text(t => { t.Span("Next Hearing Date: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.NextHearingDate) ? "N/A" : _model.NextHearingDate); });
-                        c.Item().Text(t => { t.Span("Case Stage: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.CaseStatus) ? "N/A" : _model.CaseStatus); });
+                        c.Spacing(4);
+                        ComposeLabelValue(c, "First Hearing Date:", _model.FirstHearingDate);
+                        ComposeLabelValue(c, "Next Hearing Date:", _model.NextHearingDate);
+                        ComposeLabelValue(c, "Case Stage:", _model.CaseStatus);
                     });
+                    
+                    row.ConstantItem(15); // Spacer
+                    
                     row.RelativeItem().Column(c =>
                     {
-                        c.Item().Text(t => { t.Span("Court Establishment: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.CourtEstablishment) ? "N/A" : _model.CourtEstablishment); });
-                        c.Item().Text(t => { t.Span("Judge Name: ").Bold(); t.Span(string.IsNullOrWhiteSpace(_model.Judge) ? "N/A" : _model.Judge); });
+                        c.Spacing(4);
+                        ComposeLabelValue(c, "Court Establishment:", _model.CourtEstablishment);
+                        ComposeLabelValue(c, "Judge Name:", _model.Judge);
                     });
                 });
             });
@@ -173,48 +193,79 @@ internal class CaseReportDocument : IDocument
     {
         container.Column(column =>
         {
+            column.Spacing(6);
             column.Item().Element(title => SectionTitle(title, "3. PARTIES & ADVOCATES"));
             
-            column.Item().Row(row =>
+            column.Item().Table(table =>
             {
-                row.RelativeItem().Border(1).BorderColor(BorderColor).Background(LightBackground).Padding(10).Column(c =>
+                table.ColumnsDefinition(columns =>
                 {
-                    c.Spacing(3);
-                    c.Item().Text("Petitioner(s)").Bold().FontColor(PrimaryColor).Underline();
+                    columns.RelativeColumn();
+                    columns.ConstantColumn(12); // Spacer between columns
+                    columns.RelativeColumn();
+                });
+
+                // Petitioner Card
+                table.Cell().Border(1).BorderColor(BorderColor).Background(LightBackground).Padding(10).Column(c =>
+                {
+                    c.Spacing(4);
+                    c.Item().Text("Petitioner(s)").Bold().FontSize(9).FontColor(PrimaryColor);
+                    
                     foreach (var pet in _model.Petitioners)
                     {
-                        c.Item().Text($"• {pet}").FontSize(8.5f);
+                        c.Item().Row(r =>
+                        {
+                            r.ConstantItem(10).Text("•").FontSize(8.5f).FontColor(PrimaryColor);
+                            r.RelativeItem().Text(pet).FontSize(8.5f).LineHeight(1.2f);
+                        });
                     }
                     if (!_model.Petitioners.Any())
                     {
-                        c.Item().Text("• N/A");
+                        c.Item().Row(r =>
+                        {
+                            r.ConstantItem(10).Text("•").FontSize(8.5f).FontColor(PrimaryColor);
+                            r.RelativeItem().Text("N/A").FontSize(8.5f).LineHeight(1.2f);
+                        });
                     }
-                    c.Item().PaddingTop(2).Text(t => 
+                    
+                    c.Item().PaddingTop(4).Text(t => 
                     {
                         t.DefaultTextStyle(x => x.FontSize(8.5f));
-                        t.Span("Advocate: ").Bold(); 
+                        t.Span("Advocate: ").Bold().FontColor(SecondaryColor); 
                         t.Span(string.IsNullOrWhiteSpace(_model.PetitionerAdvocate) ? "N/A" : _model.PetitionerAdvocate); 
                     });
                 });
-                
-                row.ConstantItem(10); // Column Spacer
-                
-                row.RelativeItem().Border(1).BorderColor(BorderColor).Background(LightBackground).Padding(10).Column(c =>
+
+                // Spacer Cell
+                table.Cell();
+
+                // Respondent Card
+                table.Cell().Border(1).BorderColor(BorderColor).Background(LightBackground).Padding(10).Column(c =>
                 {
-                    c.Spacing(3);
-                    c.Item().Text("Respondent(s)").Bold().FontColor(PrimaryColor).Underline();
+                    c.Spacing(4);
+                    c.Item().Text("Respondent(s)").Bold().FontSize(9).FontColor(PrimaryColor);
+                    
                     foreach (var resp in _model.Respondents)
                     {
-                        c.Item().Text($"• {resp}").FontSize(8.5f);
+                        c.Item().Row(r =>
+                        {
+                            r.ConstantItem(10).Text("•").FontSize(8.5f).FontColor(PrimaryColor);
+                            r.RelativeItem().Text(resp).FontSize(8.5f).LineHeight(1.2f);
+                        });
                     }
                     if (!_model.Respondents.Any())
                     {
-                        c.Item().Text("• N/A");
+                        c.Item().Row(r =>
+                        {
+                            r.ConstantItem(10).Text("•").FontSize(8.5f).FontColor(PrimaryColor);
+                            r.RelativeItem().Text("N/A").FontSize(8.5f).LineHeight(1.2f);
+                        });
                     }
-                    c.Item().PaddingTop(2).Text(t => 
+                    
+                    c.Item().PaddingTop(4).Text(t => 
                     {
                         t.DefaultTextStyle(x => x.FontSize(8.5f));
-                        t.Span("Advocate: ").Bold(); 
+                        t.Span("Advocate: ").Bold().FontColor(SecondaryColor); 
                         t.Span(string.IsNullOrWhiteSpace(_model.RespondentAdvocate) ? "N/A" : _model.RespondentAdvocate); 
                     });
                 });
@@ -226,6 +277,7 @@ internal class CaseReportDocument : IDocument
     {
         container.Column(column =>
         {
+            column.Spacing(6);
             column.Item().Element(title => SectionTitle(title, "4. HEARING HISTORY"));
             
             column.Item().Table(table =>
@@ -240,13 +292,13 @@ internal class CaseReportDocument : IDocument
 
                 table.Header(header =>
                 {
-                    header.Cell().Element(HeaderStyle).Text("Hearing Date").Bold().FontColor(Colors.White);
-                    header.Cell().Element(HeaderStyle).Text("Purpose").Bold().FontColor(Colors.White);
-                    header.Cell().Element(HeaderStyle).Text("Judge").Bold().FontColor(Colors.White);
-                    header.Cell().Element(HeaderStyle).Text("Business").Bold().FontColor(Colors.White);
+                    header.Cell().Element(HeaderStyle).Text("Hearing Date").Bold().FontSize(8.5f).FontColor(Colors.White);
+                    header.Cell().Element(HeaderStyle).Text("Purpose").Bold().FontSize(8.5f).FontColor(Colors.White);
+                    header.Cell().Element(HeaderStyle).Text("Judge").Bold().FontSize(8.5f).FontColor(Colors.White);
+                    header.Cell().Element(HeaderStyle).Text("Business").Bold().FontSize(8.5f).FontColor(Colors.White);
 
                     static IContainer HeaderStyle(IContainer container) => 
-                        container.Background(PrimaryColor).Padding(5).AlignLeft();
+                        container.Background(PrimaryColor).PaddingHorizontal(8).PaddingVertical(6).AlignLeft();
                 });
 
                 int i = 0;
@@ -254,15 +306,15 @@ internal class CaseReportDocument : IDocument
                 {
                     var bg = i % 2 == 0 ? Colors.White : LightBackground;
 
-                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(hearing.HearingDate) ? "N/A" : hearing.HearingDate);
-                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(hearing.Purpose) ? "N/A" : hearing.Purpose);
-                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(hearing.Judge) ? "N/A" : hearing.Judge);
-                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(hearing.BusinessOnDate) ? "N/A" : hearing.BusinessOnDate);
+                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(hearing.HearingDate) ? "N/A" : hearing.HearingDate).FontSize(8.5f).LineHeight(1.15f);
+                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(hearing.Purpose) ? "N/A" : hearing.Purpose).FontSize(8.5f).LineHeight(1.15f);
+                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(hearing.Judge) ? "N/A" : hearing.Judge).FontSize(8.5f).LineHeight(1.15f);
+                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(hearing.BusinessOnDate) ? "N/A" : hearing.BusinessOnDate).FontSize(8.5f).LineHeight(1.15f);
 
                     i++;
 
                     IContainer CellStyle(IContainer container) => 
-                        container.Background(bg).BorderBottom(1).BorderColor(BorderColor).Padding(5).AlignLeft();
+                        container.Background(bg).BorderBottom(1).BorderColor(BorderColor).PaddingHorizontal(8).PaddingVertical(6).AlignLeft();
                 }
             });
         });
@@ -272,6 +324,7 @@ internal class CaseReportDocument : IDocument
     {
         container.Column(column =>
         {
+            column.Spacing(6);
             column.Item().Element(title => SectionTitle(title, "5. ORDERS / JUDGMENTS"));
             
             column.Item().Table(table =>
@@ -284,11 +337,11 @@ internal class CaseReportDocument : IDocument
 
                 table.Header(header =>
                 {
-                    header.Cell().Element(HeaderStyle).Text("Order Date").Bold().FontColor(Colors.White);
-                    header.Cell().Element(HeaderStyle).Text("Order Number / Details").Bold().FontColor(Colors.White);
+                    header.Cell().Element(HeaderStyle).Text("Order Date").Bold().FontSize(8.5f).FontColor(Colors.White);
+                    header.Cell().Element(HeaderStyle).Text("Order Number / Details").Bold().FontSize(8.5f).FontColor(Colors.White);
 
                     static IContainer HeaderStyle(IContainer container) => 
-                        container.Background(SecondaryColor).Padding(5).AlignLeft();
+                        container.Background(SecondaryColor).PaddingHorizontal(8).PaddingVertical(6).AlignLeft();
                 });
 
                 int i = 0;
@@ -296,13 +349,13 @@ internal class CaseReportDocument : IDocument
                 {
                     var bg = i % 2 == 0 ? Colors.White : LightBackground;
 
-                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(order.OrderDate) ? "N/A" : order.OrderDate);
-                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(order.OrderNumber) ? "N/A" : order.OrderNumber);
+                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(order.OrderDate) ? "N/A" : order.OrderDate).FontSize(8.5f).LineHeight(1.15f);
+                    table.Cell().Element(CellStyle).Text(string.IsNullOrWhiteSpace(order.OrderNumber) ? "N/A" : order.OrderNumber).FontSize(8.5f).LineHeight(1.15f);
 
                     i++;
 
                     IContainer CellStyle(IContainer container) => 
-                        container.Background(bg).BorderBottom(1).BorderColor(BorderColor).Padding(5).AlignLeft();
+                        container.Background(bg).BorderBottom(1).BorderColor(BorderColor).PaddingHorizontal(8).PaddingVertical(6).AlignLeft();
                 }
             });
         });
@@ -312,13 +365,19 @@ internal class CaseReportDocument : IDocument
     {
         container.Column(column =>
         {
+            column.Spacing(6);
             column.Item().Element(title => SectionTitle(title, "6. RELEVANT ACTS"));
             
             column.Item().Border(1).BorderColor(BorderColor).Background(LightBackground).Padding(10).Column(c =>
             {
+                c.Spacing(4);
                 foreach (var act in _model.Acts)
                 {
-                    c.Item().Text($"• {act}").FontSize(8.5f);
+                    c.Item().Row(r =>
+                    {
+                        r.ConstantItem(10).Text("•").FontSize(8.5f).FontColor(PrimaryColor);
+                        r.RelativeItem().Text(act).FontSize(8.5f).LineHeight(1.2f);
+                    });
                 }
             });
         });
@@ -331,19 +390,19 @@ internal class CaseReportDocument : IDocument
 
     private void ComposeFooter(IContainer container)
     {
-        container.Row(row =>
+        container.BorderTop(0.5f).BorderColor(BorderColor).PaddingTop(6).Row(row =>
         {
-            row.RelativeItem().Text(t =>
+            row.RelativeItem().AlignLeft().AlignMiddle().Text(t =>
             {
-                t.Span("Confidential Case Report - Generated by eCourts Automated Scraper System").Italic().FontSize(7).FontColor(SecondaryColor);
+                t.Span("Confidential Case Report - Generated by eCourts Automated Scraper System").Italic().FontSize(7.5f).FontColor(SecondaryColor);
             });
             
-            row.RelativeItem().AlignRight().Text(t =>
+            row.RelativeItem().AlignRight().AlignMiddle().Text(t =>
             {
-                t.Span("Page ").FontSize(7).FontColor(SecondaryColor);
-                t.CurrentPageNumber().FontSize(7).FontColor(SecondaryColor);
-                t.Span(" of ").FontSize(7).FontColor(SecondaryColor);
-                t.TotalPages().FontSize(7).FontColor(SecondaryColor);
+                t.Span("Page ").FontSize(7.5f).FontColor(SecondaryColor);
+                t.CurrentPageNumber().FontSize(7.5f).FontColor(SecondaryColor);
+                t.Span(" of ").FontSize(7.5f).FontColor(SecondaryColor);
+                t.TotalPages().FontSize(7.5f).FontColor(SecondaryColor);
             });
         });
     }

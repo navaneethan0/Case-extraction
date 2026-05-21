@@ -12,7 +12,7 @@ export default function FetchPage() {
   const [cnrNumber, setCnrNumber] = useState('');
   const [captchaText, setCaptchaText] = useState('');
   
-  const [loadingCaptcha, setLoadingCaptcha] = useState(false);
+  const [isCaptchaLoading, setIsCaptchaLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [error, setError] = useState('');
@@ -47,7 +47,7 @@ export default function FetchPage() {
 
   const fetchCaptcha = async () => {
     try {
-      setLoadingCaptcha(true);
+      setIsCaptchaLoading(true);
       setError('');
       const response = await axios.get(`${API_BASE_URL}/captcha`);
       setCaptchaBase64(response.data.captchaBase64);
@@ -57,7 +57,7 @@ export default function FetchPage() {
       console.error(err);
       setError('Failed to load CAPTCHA. The eCourts website might be down.');
     } finally {
-      setLoadingCaptcha(false);
+      setIsCaptchaLoading(false);
     }
   };
 
@@ -140,15 +140,15 @@ export default function FetchPage() {
               <div className="form-group">
                 <label>Verification</label>
                 <div className="captcha-container">
-                  {loadingCaptcha ? (
-                    <div className="spin"><RefreshCw size={24} /></div>
+                  {isCaptchaLoading ? (
+                    <span className="text-muted">Loading CAPTCHA...</span>
                   ) : captchaBase64 ? (
                     <img src={`data:image/png;base64,${captchaBase64}`} alt="CAPTCHA" className="captcha-image" />
                   ) : (
                     <span className="text-muted">No Captcha</span>
                   )}
-                  <button type="button" className="reload-btn" onClick={fetchCaptcha} disabled={loadingCaptcha || searching}>
-                    <RefreshCw size={20} className={loadingCaptcha ? 'spin' : ''} />
+                  <button type="button" className="reload-btn" onClick={fetchCaptcha} disabled={isCaptchaLoading || searching}>
+                    <RefreshCw size={20} className={isCaptchaLoading && cnrNumber.trim() !== '' ? 'spin' : ''} />
                   </button>
                 </div>
               </div>
@@ -161,11 +161,11 @@ export default function FetchPage() {
                   placeholder="Enter characters shown above"
                   value={captchaText}
                   onChange={(e) => setCaptchaText(e.target.value)}
-                  disabled={searching || loadingCaptcha}
+                  disabled={searching || isCaptchaLoading}
                 />
               </div>
 
-              <button type="submit" className="btn-primary" disabled={searching || loadingCaptcha}>
+              <button type="submit" className="btn-primary" disabled={searching || isCaptchaLoading}>
                 {searching ? <RefreshCw size={20} className="spin" /> : <Search size={20} />}
                 {searching ? 'Extracting Data...' : 'Search Case'}
               </button>
